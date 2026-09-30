@@ -6,6 +6,16 @@
 #include <sys/stat.h>
 #include <time.h>
 
+#ifndef S_ISLNK
+#define S_ISLNK(m) 0
+#endif
+#ifndef S_IXGRP
+#define S_IXGRP 0
+#endif
+#ifndef S_IXOTH
+#define S_IXOTH 0
+#endif
+
 int compare_names(const void *a, const void *b) {
     return strcmp(*(const char **)a, *(const char **)b);
 }
@@ -15,7 +25,7 @@ void print_colored_name(const char *name, struct stat *st) {
         printf("\033[1;34m%s\033[0m\n", name);
     } else if (S_ISLNK(st->st_mode)) {
         printf("\033[1;36m%s\033[0m\n", name);
-    } else if (st->st_mode & S_IXUSR) {
+    } else if (st->st_mode & S_IEXEC) {
         printf("\033[1;32m%s\033[0m\n", name);
     } else {
         printf("%s\n", name);
@@ -60,19 +70,19 @@ int main(int argc, char *argv[]) {
         snprintf(full_path, sizeof(full_path), "%s/%s", dirname, filenames[i]);
 
         struct stat st;
-        if (lstat(full_path, &st) == -1) continue;
+        if (stat(full_path, &st) == -1) continue;
 
         if (flag_l) {
             printf((S_ISDIR(st.st_mode)) ? "d" : (S_ISLNK(st.st_mode)) ? "l" : "-");
-            printf((st.st_mode & S_IRUSR) ? "r" : "-");
-            printf((st.st_mode & S_IWUSR) ? "w" : "-");
-            printf((st.st_mode & S_IXUSR) ? "x" : "-");
-            printf((st.st_mode & S_IRGRP) ? "r" : "-");
-            printf((st.st_mode & S_IWGRP) ? "w" : "-");
-            printf((st.st_mode & st.st_mode & S_IXGRP) ? "x" : "-");
-            printf((st.st_mode & S_IROTH) ? "r" : "-");
-            printf((st.st_mode & S_IWOTH) ? "w" : "-");
-            printf((st.st_mode & S_IXOTH) ? "x" : "-");
+            printf((st.st_mode & S_IREAD) ? "r" : "-");
+            printf((st.st_mode & S_IWRITE) ? "w" : "-");
+            printf((st.st_mode & S_IEXEC) ? "x" : "-");
+            printf((st.st_mode & S_IREAD) ? "r" : "-");
+            printf((st.st_mode & S_IWRITE) ? "w" : "-");
+            printf((st.st_mode & S_IEXEC) ? "x" : "-");
+            printf((st.st_mode & S_IREAD) ? "r" : "-");
+            printf((st.st_mode & S_IWRITE) ? "w" : "-");
+            printf((st.st_mode & S_IEXEC) ? "x" : "-");
 
             char time_buf[80];
             struct tm *tm_info = localtime(&st.st_mtime);
