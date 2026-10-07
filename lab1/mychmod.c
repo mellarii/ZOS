@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
         snprintf(full_path, sizeof(full_path), "%s/%s", dirname, filenames[i]);
 
         struct stat st;
-        // На Windows используем stat вместо lstat
+       
         if (stat(full_path, &st) == -1) continue;
 
         if (flag_l) {
