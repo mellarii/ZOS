@@ -6,7 +6,6 @@
 #include <sys/stat.h>
 #include <time.h>
 
-// Макросы для совместимости с Windows (MinGW)
 #ifndef S_ISLNK
 #define S_ISLNK(m) 0
 #endif
@@ -23,11 +22,11 @@ int compare_names(const void *a, const void *b) {
 
 void print_colored_name(const char *name, struct stat *st) {
     if (S_ISDIR(st->st_mode)) {
-        printf("\033[1;34m%s\033[0m\n", name); // Синий — директория
+        printf("\033[1;34m%s\033[0m\n", name); 
     } else if (S_ISLNK(st->st_mode)) {
-        printf("\033[1;36m%s\033[0m\n", name); // Бирюзовый — ссылка
-    } else if (st->st_mode & S_IEXEC) {         // Используем универсальный S_IEXEC для исполняемых файлов
-        printf("\033[1;32m%s\033[0m\n", name); // Зеленый — исполняемый
+        printf("\033[1;36m%s\033[0m\n", name); 
+    } else if (st->st_mode & S_IEXEC) {         
+        printf("\033[1;32m%s\033[0m\n", name); 
     } else {
         printf("%s\n", name);
     }
