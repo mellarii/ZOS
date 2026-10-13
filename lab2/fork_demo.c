@@ -2,9 +2,17 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/wait.h>
+
+void bye() {
+  printf("[PID=%d] atexit: process is ended\n", getpid());
+}
 
 int main() {
   setvbuf(stdout, NULL, _IONBF,0);
+  
+  atexit(bye);
+  
   pid_t pid = fork();
   if (pid == -1) {
     perror("fork");
@@ -16,6 +24,6 @@ int main() {
     printf("PARENT : PID = %d, PPID = %d, childe's PID = %d\n", getpid(), getppid(), pid);
   }
   
-
+  
   return 0;
 }
