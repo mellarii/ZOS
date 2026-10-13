@@ -21,7 +21,16 @@ int main() {
     printf("CHILD : PID = %d, PPID = %d\n", getpid(), getppid());
     return 0;
   } else {
-    printf("PARENT : PID = %d, PPID = %d, childe's PID = %d\n", getpid(), getppid(), pid);
+    printf("PARENT : PID = %d, PPID = %d, childe PID = %d\n", getpid(), getppid(), pid);
+    int status;
+    pid_t waited = wait(&status);
+    if (waited == -1) {
+      perror("wait");
+    } else if (WIFEXITED(status)) {
+      printf("PARENT : child %d exited normally, code = %d\n", waited, WEXITSTATUS(status));
+    } else if (WIFSIGNALED(status)) {
+      printf("PARENT : child %d killed by signal %d\n", waited, WTERMSIG(status));
+    }
   }
   
   
