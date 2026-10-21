@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,7 +6,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <time.h>
-
+#include <sys/types.h>
 #ifndef S_ISLNK
 #define S_ISLNK(m) 0
 #endif
