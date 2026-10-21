@@ -1,5 +1,5 @@
 #define _GNU_SOURCE
-#inlcude <signal.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
