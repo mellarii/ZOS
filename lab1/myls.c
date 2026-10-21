@@ -20,16 +20,26 @@ int compare_names(const void *a, const void *b) {
     return strcmp(*(const char **)a, *(const char **)b);
 }
 
-void print_colored_name(const char *name, struct stat *st) {
+void print_colored_name(const char *name, struct stat *st, int flag_l, const char *full_path) {
     if (S_ISDIR(st->st_mode)) {
-        printf("\033[1;34m%s\033[0m\n", name);
+        printf("\033[1;34m%s\033[0m", name);
     } else if (S_ISLNK(st->st_mode)) {
-        printf("\033[1;36m%s\033[0m\n", name);
-    } else if (st->st_mode & S_IEXEC) {
-        printf("\033[1;32m%s\033[0m\n", name);
+        printf("\033[1;36m%s\033[0m", name);
+    } else if (st->st_mode & S_IXUSR) {
+        printf("\033[1;32m%s\033[0m", name);
     } else {
-        printf("%s\n", name);
+        printf("%s", name);
     }
+
+    if (flag_l && S_ISLNK(st->st_mode)) {
+        char link_target[1024];
+        ssize_t len = readlink(full_path, link_target, sizeof(link_target) - 1);
+        if (len != -1) {
+            link_target[len] = '\0';
+            printf(" -> %s", link_target);
+        }
+    }
+    printf("\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -56,45 +66,67 @@ int main(int argc, char *argv[]) {
 
     while ((entry = readdir(dir)) != NULL) {
         if (!flag_a && entry->d_name[0] == '.') continue;
-        
-        filenames = realloc(filenames, sizeof(char *) * (count + 1));
+
+        char **tmp = realloc(filenames, sizeof(char *) * (count + 1));
+        if (!tmp) {
+            perror("realloc");
+            for (int i = 0; i < count; i++) free(filenames[i]);
+            free(filenames);
+            closedir(dir);
+            return 1;
+        }
+        filenames = tmp;
         filenames[count] = strdup(entry->d_name);
+        if (!filenames[count]) {
+            perror("strdup");
+            for (int i = 0; i < count; i++) free(filenames[i]);
+            free(filenames);
+            closedir(dir);
+            return 1;
+        }
         count++;
     }
     closedir(dir);
 
-    qsort(filenames, count, sizeof(char *), compare_names);
+    if (count > 0)
+        qsort(filenames, count, sizeof(char *), compare_names);
 
     for (int i = 0; i < count; i++) {
-        char full_path[1024];
+        char full_path[2048];
         snprintf(full_path, sizeof(full_path), "%s/%s", dirname, filenames[i]);
 
         struct stat st;
-        if (stat(full_path, &st) == -1) continue;
+        if (lstat(full_path, &st) == -1) {
+            perror(filenames[i]);
+            free(filenames[i]);
+            continue;
+        }
 
         if (flag_l) {
             printf((S_ISDIR(st.st_mode)) ? "d" : (S_ISLNK(st.st_mode)) ? "l" : "-");
-            printf((st.st_mode & S_IREAD) ? "r" : "-");
-            printf((st.st_mode & S_IWRITE) ? "w" : "-");
-            printf((st.st_mode & S_IEXEC) ? "x" : "-");
-            printf((st.st_mode & S_IREAD) ? "r" : "-");
-            printf((st.st_mode & S_IWRITE) ? "w" : "-");
-            printf((st.st_mode & S_IEXEC) ? "x" : "-");
-            printf((st.st_mode & S_IREAD) ? "r" : "-");
-            printf((st.st_mode & S_IWRITE) ? "w" : "-");
-            printf((st.st_mode & S_IEXEC) ? "x" : "-");
+            printf((st.st_mode & S_IRUSR) ? "r" : "-");
+            printf((st.st_mode & S_IWUSR) ? "w" : "-");
+            printf((st.st_mode & S_IXUSR) ? "x" : "-");
+            printf((st.st_mode & S_IRGRP) ? "r" : "-");
+            printf((st.st_mode & S_IWGRP) ? "w" : "-");
+            printf((st.st_mode & S_IXGRP) ? "x" : "-");
+            printf((st.st_mode & S_IROTH) ? "r" : "-");
+            printf((st.st_mode & S_IWOTH) ? "w" : "-");
+            printf((st.st_mode & S_IXOTH) ? "x" : "-");
 
             char time_buf[80];
             struct tm *tm_info = localtime(&st.st_mtime);
             strftime(time_buf, sizeof(time_buf), "%b %d %H:%M", tm_info);
 
-            printf(" %2ld %-8d %-8d %8ld %s ", 
+            printf(" %2ld %-8d %-8d %8ld %s ",
                    (long)st.st_nlink, st.st_uid, st.st_gid, (long)st.st_size, time_buf);
         }
 
-        print_colored_name(filenames[i], &st);
+        print_colored_name(filenames[i], &st, flag_l, full_path);
+
         free(filenames[i]);
     }
+
     free(filenames);
     return 0;
 }
