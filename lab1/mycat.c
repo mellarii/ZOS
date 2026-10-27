@@ -8,19 +8,23 @@ int main(int argc, char *argv[]) {
     int flag_n = 0;
     int flag_b = 0;
     int file_index = 1;
+    int opt;
 
-    while (file_index < argc && argv[file_index][0] == '-') {
-        if (strcmp(argv[file_index], "-E") == 0) {
-            flag_E = 1;
-        } else if (strcmp(argv[file_index], "-n") == 0) {
-            flag_n = 1;
-        } else if (strcmp(argv[file_index], "-b") == 0) {
-            flag_b = 1;
-        } else {
-            fprintf(stderr, "Unknown flag %s\n", argv[file_index]);
-            return 1;
+    while ((opt = getopt(argc, argv, "Enb")) != -1) {
+        switch (opt) {
+            case 'E': 
+                flag_E = 1; 
+                break;
+            case 'n': 
+                flag_n = 1; 
+                break;
+            case 'b': 
+                flag_b = 1; 
+                break;
+            default: 
+                fprintf(stderr, "Usage: %s [-Enb] [file]\n", argv[0]);
+                return 1;
         }
-        file_index++;
     }
 
     if (flag_b) {

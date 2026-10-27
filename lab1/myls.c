@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <pwd.h>
+#include <grp.h>
+#include <sys/ioctl.h>
 
 #ifndef S_ISLNK
 #define S_ISLNK(m) 0
@@ -92,6 +95,35 @@ int main(int argc, char *argv[]) {
     if (count > 0)
         qsort(filenames, count, sizeof(char *), compare_names);
 
+    long total_blocks = 0;
+    size_t max_len = 0;
+
+    for (int i = 0; i < count; i++) {
+        char full_path[2048];
+        snprintf(full_path, sizeof(full_path), "%s/%s", dirname, filenames[i]);
+        struct stat st;
+        if (lstat(full_path, &st) != -1) {
+            total_blocks += st.st_blocks / 2;
+        }
+        size_t len = strlen(filenames[i]);
+        if (len > max_len) max_len = len;
+    }
+
+    if (flag_l) {
+        printf("total %ld\n", total_blocks);
+    }
+    int term_width = 80;
+    if (!flag_l) {
+        struct winsize w;
+        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {
+            term_width = w.ws_col;
+        }
+    }
+    int col_width = max_len + 2;
+    int cols = term_width / col_width;
+    if (cols < 1) cols = 1;
+    int current_col = 0;
+
     for (int i = 0; i < count; i++) {
         char full_path[2048];
         snprintf(full_path, sizeof(full_path), "%s/%s", dirname, filenames[i]);
@@ -119,11 +151,36 @@ int main(int argc, char *argv[]) {
             struct tm *tm_info = localtime(&st.st_mtime);
             strftime(time_buf, sizeof(time_buf), "%b %d %H:%M", tm_info);
 
+            struct passwd *pw = getpwuid(st.st_uid);
+            struct group *gr = getgrgid(st.st_gid);
+            char uid_str[32], gid_str[32];
+
+            if (pw) snprintf(uid_str, sizeof(uid_str), "%s", pw->pw_name);
+            else snprintf(uid_str, sizeof(uid_str), "%d", st.st_uid);
+
+            if (gr) snprintf(gid_str, sizeof(gid_str), "%s", gr->gr_name);
+            else snprintf(gid_str, sizeof(gid_str), "%d", st.st_gid);
+
             printf(" %2ld %-8d %-8d %8ld %s ",
                    (long)st.st_nlink, st.st_uid, st.st_gid, (long)st.st_size, time_buf);
-        }
 
-        print_colored_name(filenames[i], &st, flag_l, full_path);
+            print_colored_name(filenames[i], &st, flag_l, full_path);
+            printf("\n");
+        } else {
+            int color_offset = 0;
+            if (S_ISDIR(st.st_mode) || S_ISLNK(st.st_mode) || (st.st_mode & S_IXUSR)) {
+                color_offset = 9;
+            }
+            print_colored_name(filenames[i], &st, flag_l, full_path);
+            current_col++;
+            if (current_col == cols || i == count - 1) {
+                printf("\n");
+                current_col = 0;
+            } else {
+                int padding = col_width - strlen(filenames[i]) - color_offset;
+                for (int p = 0; p < padding; p++) putchar(' ');
+            }
+        }
 
         free(filenames[i]);
     }
