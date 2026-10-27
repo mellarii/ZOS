@@ -32,10 +32,10 @@ int main(int argc, char *argv[]) {
     }
 
     FILE *file = stdin;
-    if (file_index < argc) {
-        file = fopen(argv[file_index], "r");
+    if (optind < argc) {
+        file = fopen(argv[optind], "r");
         if (!file) {
-            perror(argv[file_index]);
+            perror(argv[optind]);
             return 1;
         }
     }

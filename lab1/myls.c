@@ -161,8 +161,7 @@ int main(int argc, char *argv[]) {
             if (gr) snprintf(gid_str, sizeof(gid_str), "%s", gr->gr_name);
             else snprintf(gid_str, sizeof(gid_str), "%d", st.st_gid);
 
-            printf(" %2ld %-8d %-8d %8ld %s ",
-                   (long)st.st_nlink, st.st_uid, st.st_gid, (long)st.st_size, time_buf);
+            printf(" %2ld %-8s %-8s %8ld %s ", (long)st.st_nlink, uid_str, gid_str, (long)st.st_size, time_buf);
 
             print_colored_name(filenames[i], &st, flag_l, full_path);
             printf("\n");
