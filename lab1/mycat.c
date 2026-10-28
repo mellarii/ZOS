@@ -7,7 +7,6 @@ int main(int argc, char *argv[]) {
     int flag_E = 0;
     int flag_n = 0;
     int flag_b = 0;
-    int file_index = 1;
     int opt;
 
     while ((opt = getopt(argc, argv, "Enb")) != -1) {
