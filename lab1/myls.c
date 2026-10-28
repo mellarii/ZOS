@@ -43,7 +43,6 @@ void print_colored_name(const char *name, struct stat *st, int flag_l, const cha
             printf(" -> %s", link_target);
         }
     }
-    printf("\n");
 }
 
 int main(int argc, char *argv[]) {
