@@ -1,15 +1,16 @@
-CC      := gcc
-CFLAGS  := -Wall -Wextra -std=c11 -O2
-LDFLAGS :=
-
-TARGETS := mycat mychmod mygrep myls
-
-.PHONY: all clean
+CC      = gcc
+CFLAGS  = -Wall -Wextra -O2 -std=c11
+TARGETS = pipe fifo
 
 all: $(TARGETS)
 
-%: %.c
-        $(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
+pipe: pipe.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+fifo: fifo.c
+	$(CC) $(CFLAGS) -o $@ $<
 
 clean:
-        rm -f $(TARGETS)
+	rm -f $(TARGETS) /tmp/lab3_fifo
+
+.PHONY: all clean
