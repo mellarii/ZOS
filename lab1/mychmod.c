@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <ctype.h>
 
 int main(int argc, char *argv[]) {
@@ -21,7 +22,12 @@ int main(int argc, char *argv[]) {
     }
 
     if (is_octal) {
-        mode_t mode = strtol(mode_str, NULL, 8);
+        char *end;
+        mode_t mode = strtol(mode_str, &end, 8);
+        if (*end!='\0') {
+            perror("Oshibochka");
+            return 1;
+        }
         for (int i = 2; i < argc; i++) {
             if (chmod(argv[i], mode) == -1) {
                 perror(argv[i]);

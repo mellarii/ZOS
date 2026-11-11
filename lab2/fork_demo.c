@@ -39,7 +39,7 @@ int main() {
     return 1;
   } else if (pid == 0) {
     printf("CHILD : PID = %d, PPID = %d\n", getpid(), getppid());
-    pause();
+    sleep(5);
     return 0;
   } else {
     printf("PARENT : PID = %d, PPID = %d, child's PID = %d\n", getpid(), getppid(), pid);
