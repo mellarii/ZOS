@@ -30,7 +30,7 @@ int main(void) {
 
     if (flock(lock_fd, LOCK_EX | LOCK_NB) < 0) {
         if (errno == EWOULDBLOCK) {
-            printf("Первая программа уже запущена.\n");
+            printf("First programm is almost worked.\n");
         } else {
             perror("flock");
         }
